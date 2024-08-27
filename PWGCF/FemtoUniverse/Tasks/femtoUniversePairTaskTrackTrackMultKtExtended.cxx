@@ -69,6 +69,10 @@ struct femtoUniversePairTaskTrackTrackMultKtExtended {
     Configurable<float> ConfNsigmaCombined{"ConfNsigmaCombined", 3.0f, "TPC and TOF Pion Sigma (combined) for momentum > ConfTOFpMin"};
     Configurable<float> ConfNsigmaTPC{"ConfNsigmaTPC", 3.0f, "TPC Pion Sigma for momentum < ConfTOFpMin"};
     Configurable<float> ConfTOFpMin{"ConfTOFpMin", 0.5f, "Min. momentum for which TOF is required for PID"};
+    Configurable<float> ConfNsigmaTPCDe{"ConfNsigmaTPCDe", 2.0f, "TPC Deuteron Sigma for momentum < ConfTOFpMinDe"};
+    Configurable<float> ConfNsigmaTOFDe{"ConfNsigmaTOFDe", 2.0f, "TOF Deuteron Sigma"};
+    Configurable<float> ConfTOFpMin{"ConfTOFpMin", 0.5f, "Min. momentum for which TOF is required for PID."};
+    Configurable<float> ConfTOFpMinDe{"ConfTOFpMinDe", 0.5f, "Min. momentum for De for which TOF is required for PID."};
     Configurable<float> ConfEtaMax{"ConfEtaMax", 0.8f, "Higher limit for |Eta| (the same for both particles)"};
 
     Configurable<LabeledArray<float>> ConfCutTable{"ConfCutTable", {cutsTable[0], nPart, nCuts, partNames, cutNames}, "Particle selections"};
@@ -276,6 +280,18 @@ struct femtoUniversePairTaskTrackTrackMultKtExtended {
         return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 2);
       } else if (mom > 0.8 && mom < 1.5) {
         return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.5);
+  /// TPC Kaon Sigma selection (stricter cuts for K+ and K-)
+  bool IsKaonNSigma(float mom, float nsigmaTPCK, float nsigmaTOFK)
+  {
+    if (twotracksconfigs.IsKaonNsigma == true) {
+      if (mom < 0.5) {
+        return TMath::Abs(nsigmaTPCK) < 2;
+      } else if (mom > 0.5 && mom < 0.8) {
+        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 2);
+      } else if (mom > 0.8 && mom < 1.0) {
+        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.5);
+      } else if (mom > 1.0 && mom < 1.5) {
+        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.0);
       } else {
         return false;
       }
@@ -293,6 +309,8 @@ struct femtoUniversePairTaskTrackTrackMultKtExtended {
       } else {
         return (TMath::Abs(nsigmaTOFDe) < deuteronconfigs.ConfNsigmaTOFDe && (TMath::Abs(nsigmaTPCDe) < deuteronconfigs.ConfNsigmaTPCDe));
       }
+    if (mom < twotracksconfigs.ConfTOFpMinDe) {
+      return TMath::Abs(nsigmaTPCDe) < twotracksconfigs.ConfNsigmaTPCDe;
     } else {
       return false;
     }
