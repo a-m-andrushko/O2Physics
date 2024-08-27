@@ -49,7 +49,7 @@ struct femtoUniverseEfficiencyBase {
   Configurable<float> ConfEtaMax{"ConfEtaMax", 0.8f, "Higher limit for |Eta| (the same for both particles)"};
   Configurable<float> ConfMomProton{"ConfMomProton", 0.75, "Momentum threshold for proton identification using TOF"};
   Configurable<bool> IsKaonRun2{"IsKaonRun2", false, "Enable kaon selection used in Run2"}; // to check consistency with Run2 results
-  
+
   ConfigurableAxis ConfTempFitVarpTBins{"ConfTempFitVarpTBins", {20, 0.5, 4.05}, "Binning of the pT in the pT vs. TempFitVar plot"};
   ConfigurableAxis ConfTempFitVarPDGBins{"ConfTempFitVarPDGBins", {6000, -2300, 2300}, "Binning of the PDG code in the pT vs. TempFitVar plot"};
   ConfigurableAxis ConfTempFitVarCPABins{"ConfTempFitVarCPABins", {1000, 0.9, 1}, "Binning of the pointing angle cosinus in the pT vs. TempFitVar plot"};

@@ -280,561 +280,561 @@ struct femtoUniversePairTaskTrackTrackMultKtExtended {
         return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 2);
       } else if (mom > 0.8 && mom < 1.5) {
         return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.5);
-  /// TPC Kaon Sigma selection (stricter cuts for K+ and K-)
-  bool IsKaonNSigma(float mom, float nsigmaTPCK, float nsigmaTOFK)
-  {
-    if (twotracksconfigs.IsKaonNsigma == true) {
-      if (mom < 0.5) {
-        return TMath::Abs(nsigmaTPCK) < 2;
-      } else if (mom > 0.5 && mom < 0.8) {
-        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 2);
-      } else if (mom > 0.8 && mom < 1.0) {
-        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.5);
-      } else if (mom > 1.0 && mom < 1.5) {
-        return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.0);
-      } else {
-        return false;
-      }
-    } else {
-      return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
-    }
-  }
-
-  /// TPC Deuteron Sigma selection
-  bool IsDeuteronNSigma(float mom, float nsigmaTPCDe, float nsigmaTOFDe)
-  {
-    if (mom > deuteronconfigs.ConfPLowDe && mom < deuteronconfigs.ConfPHighDe) {
-      if (mom < deuteronconfigs.ConfTOFpMinDe) {
-        return TMath::Abs(nsigmaTPCDe) < deuteronconfigs.ConfNsigmaTPCDe;
-      } else {
-        return (TMath::Abs(nsigmaTOFDe) < deuteronconfigs.ConfNsigmaTOFDe && (TMath::Abs(nsigmaTPCDe) < deuteronconfigs.ConfNsigmaTPCDe));
-      }
-    if (mom < twotracksconfigs.ConfTOFpMinDe) {
-      return TMath::Abs(nsigmaTPCDe) < twotracksconfigs.ConfNsigmaTPCDe;
-    } else {
-      return false;
-    }
-  }
-
-  /// Linear cut for clearer TPC Deuteron Sigma
-  bool IsDeuteronNSigmaLinearCut(float mom, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
-  {
-    if (lincut.ConfIsLine == true) {
-      if (mom > lincut.pLow && mom < lincut.pHigh) {
-        if (tpcSignal > lincut.a * mom + lincut.b) {
-          return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
-        } else {
-          return false;
-        }
-      } else {
-        return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
-      }
-    } else {
-      return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
-    }
-  }
-
-  /// Polynomial 3 cut for clearer TPC Deuteron Sigma
-  bool IsDeuteronNSigmaPolCut(float mom, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
-  {
-    if (polcut.ConfIsPol == true) {
-      if (tpcSignal > polcut.A * TMath::Power(mom, 3) + polcut.B * TMath::Power(mom, 2) + polcut.C * mom + polcut.D) {
-        return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
-      } else {
-        return false;
-      }
-    } else {
-      return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
-    }
-  }
-
-  bool IsParticleNSigma(int8_t particle_number, float mom, float nsigmaTPCPr, float nsigmaTOFPr, float nsigmaTPCPi, float nsigmaTOFPi, float nsigmaTPCK, float nsigmaTOFK, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
-  {
-    if (particle_number == 1) {
-      switch (trackonefilter.ConfPDGCodePartOne) {
-        case 2212:  // Proton+
-        case -2212: // Proton-
-          return IsNSigma(mom, nsigmaTPCPr, nsigmaTOFPr);
-          break;
-        case 211:  // Pion+
-        case -211: // Pion-
-        case 111:  // Pion 0
-          return IsNSigma(mom, nsigmaTPCPi, nsigmaTOFPi);
-          break;
-        case 321:  // Kaon+
-        case -321: // Kaon-
-          return IsKaonNSigma(mom, nsigmaTPCK, nsigmaTOFK);
-          break;
-        case 130: // Kaon 0 LONG
-        case 310: // Kaon 0 SHORT
-          return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
-          break;
-        case 1000010020:  // Deuteron+
-        case -1000010020: // Deuteron-
-          return IsDeuteronNSigmaPolCut(mom, nsigmaTPCDe, nsigmaTOFDe, tpcSignal);
-          break;
-        default:
-          return false;
-      }
-      return false;
-    } else if (particle_number == 2) {
-      switch (tracktwofilter.ConfPDGCodePartTwo) {
-        case 2212:  // Proton+
-        case -2212: // Proton-
-          return IsNSigma(mom, nsigmaTPCPr, nsigmaTOFPr);
-          break;
-        case 211:  // Pion+
-        case -211: // Pion-
-        case 111:  // Pion 0
-          return IsNSigma(mom, nsigmaTPCPi, nsigmaTOFPi);
-          break;
-        case 321:  // Kaon+
-        case -321: // Kaon-
-          return IsKaonNSigma(mom, nsigmaTPCK, nsigmaTOFK);
-          break;
-        case 130: // Kaon 0 LONG
-        case 310: // Kaon 0 SHORT
-          return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
-          break;
-        case 1000010020:  // Deuteron+
-        case -1000010020: // Deuteron-
-          return IsDeuteronNSigmaPolCut(mom, nsigmaTPCDe, nsigmaTOFDe, tpcSignal);
-          break;
-        default:
-          return false;
-      }
-      return false;
-    } else {
-      LOGF(fatal, "Wrong number of particle chosen! It should be 1 or 2. It is -> %d", particle_number);
-    }
-    return false;
-  }
-
-  void init(InitContext&)
-  {
-    eventHisto.init(&qaRegistry);
-    sphericityRegistry.add("sphericity", ";Sphericity;Entries", kTH1F, {{150, 0.0, 3, "Sphericity"}});
-
-    trackHistoPartOne.init(&qaRegistry, ConfTempFitVarpTBins, ConfTempFitVarBins, twotracksconfigs.ConfIsMC, trackonefilter.ConfPDGCodePartOne, true);
-
-    trackHistoPartTwo.init(&qaRegistry, ConfTempFitVarpTBins, ConfTempFitVarBins, twotracksconfigs.ConfIsMC, tracktwofilter.ConfPDGCodePartTwo, true);
-
-    MixQaRegistry.add("MixingQA/hSECollisionBins", ";bin;Entries", kTH1F, {{120, -0.5, 119.5}});
-    MixQaRegistry.add("MixingQA/hMECollisionBins", ";bin;Entries", kTH1F, {{120, -0.5, 119.5}});
-
-    mass1 = pdg->Mass(trackonefilter.ConfPDGCodePartOne);
-    mass2 = pdg->Mass(tracktwofilter.ConfPDGCodePartTwo);
-
-    if (cfgProcessPM) {
-      sameEventCont.init(&resultRegistryPM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-      mixedEventCont.init(&resultRegistryPM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-
-      sameEventCont.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-      mixedEventCont.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-
-      if (cfgProcessMultBins) {
-        sameEventMultCont.init(&SameMultRegistryPM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-        mixedEventMultCont.init(&MixedMultRegistryPM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-      }
-    }
-
-    if (cfgProcessPP) {
-      sameEventContPP.init(&resultRegistryPP, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-      mixedEventContPP.init(&resultRegistryPP, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-      sameEventContPP.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-      mixedEventContPP.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-
-      if (cfgProcessMultBins) {
-        sameEventMultContPP.init(&SameMultRegistryPP, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-        mixedEventMultContPP.init(&MixedMultRegistryPP, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-      }
-    }
-
-    if (cfgProcessMM) {
-      sameEventContMM.init(&resultRegistryMM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-      mixedEventContMM.init(&resultRegistryMM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
-      sameEventContMM.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-      mixedEventContMM.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
-
-      if (cfgProcessMultBins) {
-        sameEventMultContMM.init(&SameMultRegistryMM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-        mixedEventMultContMM.init(&MixedMultRegistryMM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
-      }
-    }
-
-    pairCleaner.init(&qaRegistry);
-    if (ConfIsCPR.value) {
-      pairCloseRejection.init(&resultRegistry, &qaRegistry, ConfCPRdeltaPhiCutMin.value, ConfCPRdeltaPhiCutMax.value, ConfCPRdeltaEtaCutMin.value, ConfCPRdeltaEtaCutMax.value, ConfCPRChosenRadii.value, ConfCPRPlotPerRadii.value);
-    }
-
-    vPIDPartOne = trackonefilter.ConfPIDPartOne.value;
-    vPIDPartTwo = tracktwofilter.ConfPIDPartTwo.value;
-    kNsigma = twotracksconfigs.ConfTrkPIDnSigmaMax.value;
-  }
-
-  template <typename CollisionType>
-  void fillCollision(CollisionType col)
-  {
-    MixQaRegistry.fill(HIST("MixingQA/hSECollisionBins"), colBinning.getBin({col.posZ(), col.multNtr()}));
-    eventHisto.fillQA(col);
-  }
-
-  /// This function processes the same event and takes care of all the histogramming
-  /// \todo the trivial loops over the tracks should be factored out since they will be common to all combinations of T-T, T-V0, V0-V0, ...
-  /// \tparam PartitionType
-  /// \tparam PartType
-  /// \tparam isMC: enables Monte Carlo truth specific histograms
-  /// \param groupPartsOne partition for the first particle passed by the process function
-  /// \param groupPartsTwo partition for the second particle passed by the process function
-  /// \param parts femtoUniverseParticles table (in case of Monte Carlo joined with FemtoUniverseMCLabels)
-  /// \param magFieldTesla magnetic field of the collision
-  /// \param multCol multiplicity of the collision
-  /// \param pairType describes charge of correlation pair (plus-minus (1), plus-plus (2), minus-minus (3))
-  /// \param fillQA enables filling of QA histograms
-  template <bool isMC, typename PartitionType, typename PartType>
-  void doSameEvent(PartitionType groupPartsOne, PartitionType groupPartsTwo, PartType parts, float magFieldTesla, int multCol, int pairType, bool fillQA)
-  {
-
-    /// Histogramming same event
-    if ((pairType == 1 || pairType == 2) && fillQA) {
-      for (auto& part : groupPartsOne) {
-        if (!IsParticleNSigma((int8_t)1, part.p(), trackCuts.getNsigmaTPC(part, o2::track::PID::Proton), trackCuts.getNsigmaTOF(part, o2::track::PID::Proton), trackCuts.getNsigmaTPC(part, o2::track::PID::Pion), trackCuts.getNsigmaTOF(part, o2::track::PID::Pion), trackCuts.getNsigmaTPC(part, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(part, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(part, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(part, o2::track::PID::Deuteron), part.tpcSignal())) {
-          continue;
-        }
-        trackHistoPartOne.fillQA<isMC, true>(part);
-      }
-    }
-
-    if ((pairType == 1 || pairType == 3) && fillQA) {
-      for (auto& part : groupPartsTwo) {
-        if (!IsParticleNSigma((int8_t)2, part.p(), trackCuts.getNsigmaTPC(part, o2::track::PID::Proton), trackCuts.getNsigmaTOF(part, o2::track::PID::Proton), trackCuts.getNsigmaTPC(part, o2::track::PID::Pion), trackCuts.getNsigmaTOF(part, o2::track::PID::Pion), trackCuts.getNsigmaTPC(part, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(part, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(part, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(part, o2::track::PID::Deuteron), part.tpcSignal())) {
-          continue;
-        }
-        trackHistoPartTwo.fillQA<isMC, true>(part);
-      }
-    }
-
-    if (pairType == 1) {
-
-      /// Now build the combinations for non-identical particle pairs
-      for (auto& [p1, p2] : combinations(CombinationsFullIndexPolicy(groupPartsOne, groupPartsTwo))) {
-
-        if (!IsParticleNSigma((int8_t)1, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
-          continue;
-        }
-
-        if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
-          continue;
-        }
-
-        if (ConfIsCPR.value) {
-          if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::same)) {
-            continue;
-          }
-        }
-
-        // track cleaning
-        if (!pairCleaner.isCleanPair(p1, p2, parts)) {
-          continue;
-        }
-
-        float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-        float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
-
-        sameEventCont.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-        if (cfgProcessMultBins)
-          sameEventMultCont.fill<float>(kstar, multCol, kT);
-      }
-    } else {
-      /// Now build the combinations for identical particles pairs
-      for (auto& [p1, p2] : combinations(CombinationsStrictlyUpperIndexPolicy(groupPartsOne, groupPartsOne))) {
-
-        if (!IsParticleNSigma((int8_t)2, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
-          continue;
-        }
-
-        if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
-          continue;
-        }
-
-        if (ConfIsCPR.value) {
-          if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::same)) {
-            continue;
-          }
-        }
-
-        // track cleaning
-        if (!pairCleaner.isCleanPair(p1, p2, parts)) {
-          continue;
-        }
-
-        switch (pairType) {
-          case 2: {
-            if (IsPairIdentical == true) {
-              float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass1);
-              float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass1);
-
-              sameEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-              if (cfgProcessMultBins)
-                sameEventMultContPP.fill<float>(kstar, multCol, kT);
+        /// TPC Kaon Sigma selection (stricter cuts for K+ and K-)
+        bool IsKaonNSigma(float mom, float nsigmaTPCK, float nsigmaTOFK)
+        {
+          if (twotracksconfigs.IsKaonNsigma == true) {
+            if (mom < 0.5) {
+              return TMath::Abs(nsigmaTPCK) < 2;
+            } else if (mom > 0.5 && mom < 0.8) {
+              return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 2);
+            } else if (mom > 0.8 && mom < 1.0) {
+              return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.5);
+            } else if (mom > 1.0 && mom < 1.5) {
+              return (TMath::Abs(nsigmaTPCK) < 3 && TMath::Abs(nsigmaTOFK) < 1.0);
             } else {
-              float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-              float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+              return false;
+            }
+          } else {
+            return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
+          }
+        }
 
-              sameEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-              if (cfgProcessMultBins)
-                sameEventMultContPP.fill<float>(kstar, multCol, kT);
+        /// TPC Deuteron Sigma selection
+        bool IsDeuteronNSigma(float mom, float nsigmaTPCDe, float nsigmaTOFDe)
+        {
+          if (mom > deuteronconfigs.ConfPLowDe && mom < deuteronconfigs.ConfPHighDe) {
+            if (mom < deuteronconfigs.ConfTOFpMinDe) {
+              return TMath::Abs(nsigmaTPCDe) < deuteronconfigs.ConfNsigmaTPCDe;
+            } else {
+              return (TMath::Abs(nsigmaTOFDe) < deuteronconfigs.ConfNsigmaTOFDe && (TMath::Abs(nsigmaTPCDe) < deuteronconfigs.ConfNsigmaTPCDe));
+            }
+            if (mom < twotracksconfigs.ConfTOFpMinDe) {
+              return TMath::Abs(nsigmaTPCDe) < twotracksconfigs.ConfNsigmaTPCDe;
+            } else {
+              return false;
+            }
+          }
+
+          /// Linear cut for clearer TPC Deuteron Sigma
+          bool IsDeuteronNSigmaLinearCut(float mom, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
+          {
+            if (lincut.ConfIsLine == true) {
+              if (mom > lincut.pLow && mom < lincut.pHigh) {
+                if (tpcSignal > lincut.a * mom + lincut.b) {
+                  return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
+                } else {
+                  return false;
+                }
+              } else {
+                return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
+              }
+            } else {
+              return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
+            }
+          }
+
+          /// Polynomial 3 cut for clearer TPC Deuteron Sigma
+          bool IsDeuteronNSigmaPolCut(float mom, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
+          {
+            if (polcut.ConfIsPol == true) {
+              if (tpcSignal > polcut.A * TMath::Power(mom, 3) + polcut.B * TMath::Power(mom, 2) + polcut.C * mom + polcut.D) {
+                return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
+              } else {
+                return false;
+              }
+            } else {
+              return IsDeuteronNSigma(mom, nsigmaTPCDe, nsigmaTOFDe);
+            }
+          }
+
+          bool IsParticleNSigma(int8_t particle_number, float mom, float nsigmaTPCPr, float nsigmaTOFPr, float nsigmaTPCPi, float nsigmaTOFPi, float nsigmaTPCK, float nsigmaTOFK, float nsigmaTPCDe, float nsigmaTOFDe, float tpcSignal)
+          {
+            if (particle_number == 1) {
+              switch (trackonefilter.ConfPDGCodePartOne) {
+                case 2212:  // Proton+
+                case -2212: // Proton-
+                  return IsNSigma(mom, nsigmaTPCPr, nsigmaTOFPr);
+                  break;
+                case 211:  // Pion+
+                case -211: // Pion-
+                case 111:  // Pion 0
+                  return IsNSigma(mom, nsigmaTPCPi, nsigmaTOFPi);
+                  break;
+                case 321:  // Kaon+
+                case -321: // Kaon-
+                  return IsKaonNSigma(mom, nsigmaTPCK, nsigmaTOFK);
+                  break;
+                case 130: // Kaon 0 LONG
+                case 310: // Kaon 0 SHORT
+                  return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
+                  break;
+                case 1000010020:  // Deuteron+
+                case -1000010020: // Deuteron-
+                  return IsDeuteronNSigmaPolCut(mom, nsigmaTPCDe, nsigmaTOFDe, tpcSignal);
+                  break;
+                default:
+                  return false;
+              }
+              return false;
+            } else if (particle_number == 2) {
+              switch (tracktwofilter.ConfPDGCodePartTwo) {
+                case 2212:  // Proton+
+                case -2212: // Proton-
+                  return IsNSigma(mom, nsigmaTPCPr, nsigmaTOFPr);
+                  break;
+                case 211:  // Pion+
+                case -211: // Pion-
+                case 111:  // Pion 0
+                  return IsNSigma(mom, nsigmaTPCPi, nsigmaTOFPi);
+                  break;
+                case 321:  // Kaon+
+                case -321: // Kaon-
+                  return IsKaonNSigma(mom, nsigmaTPCK, nsigmaTOFK);
+                  break;
+                case 130: // Kaon 0 LONG
+                case 310: // Kaon 0 SHORT
+                  return IsNSigma(mom, nsigmaTPCK, nsigmaTOFK);
+                  break;
+                case 1000010020:  // Deuteron+
+                case -1000010020: // Deuteron-
+                  return IsDeuteronNSigmaPolCut(mom, nsigmaTPCDe, nsigmaTOFDe, tpcSignal);
+                  break;
+                default:
+                  return false;
+              }
+              return false;
+            } else {
+              LOGF(fatal, "Wrong number of particle chosen! It should be 1 or 2. It is -> %d", particle_number);
+            }
+            return false;
+          }
+
+          void init(InitContext&)
+          {
+            eventHisto.init(&qaRegistry);
+            sphericityRegistry.add("sphericity", ";Sphericity;Entries", kTH1F, {{150, 0.0, 3, "Sphericity"}});
+
+            trackHistoPartOne.init(&qaRegistry, ConfTempFitVarpTBins, ConfTempFitVarBins, twotracksconfigs.ConfIsMC, trackonefilter.ConfPDGCodePartOne, true);
+
+            trackHistoPartTwo.init(&qaRegistry, ConfTempFitVarpTBins, ConfTempFitVarBins, twotracksconfigs.ConfIsMC, tracktwofilter.ConfPDGCodePartTwo, true);
+
+            MixQaRegistry.add("MixingQA/hSECollisionBins", ";bin;Entries", kTH1F, {{120, -0.5, 119.5}});
+            MixQaRegistry.add("MixingQA/hMECollisionBins", ";bin;Entries", kTH1F, {{120, -0.5, 119.5}});
+
+            mass1 = pdg->Mass(trackonefilter.ConfPDGCodePartOne);
+            mass2 = pdg->Mass(tracktwofilter.ConfPDGCodePartTwo);
+
+            if (cfgProcessPM) {
+              sameEventCont.init(&resultRegistryPM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+              mixedEventCont.init(&resultRegistryPM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+
+              sameEventCont.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
+              mixedEventCont.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
+
+              if (cfgProcessMultBins) {
+                sameEventMultCont.init(&SameMultRegistryPM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+                mixedEventMultCont.init(&MixedMultRegistryPM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+              }
             }
 
-            break;
-          }
+            if (cfgProcessPP) {
+              sameEventContPP.init(&resultRegistryPP, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+              mixedEventContPP.init(&resultRegistryPP, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+              sameEventContPP.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
+              mixedEventContPP.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
 
-          case 3: {
-            if (IsPairIdentical == true) {
-              float kstar = FemtoUniverseMath::getkstar(p1, mass2, p2, mass2);
-              float kT = FemtoUniverseMath::getkT(p1, mass2, p2, mass2);
-
-              sameEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-              if (cfgProcessMultBins)
-                sameEventMultContMM.fill<float>(kstar, multCol, kT);
-            } else {
-              float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-              float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
-
-              sameEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-              if (cfgProcessMultBins)
-                sameEventMultContMM.fill<float>(kstar, multCol, kT);
+              if (cfgProcessMultBins) {
+                sameEventMultContPP.init(&SameMultRegistryPP, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+                mixedEventMultContPP.init(&MixedMultRegistryPP, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+              }
             }
 
-            break;
-          }
-          default:
-            break;
-        }
-      }
-    }
-  }
+            if (cfgProcessMM) {
+              sameEventContMM.init(&resultRegistryMM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+              mixedEventContMM.init(&resultRegistryMM, ConfkstarBins, ConfMultBins, ConfkTBins, ConfmTBins, ConfmultBins3D, ConfmTBins3D, twotracksconfigs.ConfIsMC, twotracksconfigs.ConfUse3D);
+              sameEventContMM.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
+              mixedEventContMM.setPDGCodes(trackonefilter.ConfPDGCodePartOne, tracktwofilter.ConfPDGCodePartTwo);
 
-  /// process function for to call doSameEvent with Data
-  /// \param col subscribe to the collision table (Data)
-  /// \param parts subscribe to the femtoUniverseParticleTable
-  void processSameEvent(soa::Filtered<o2::aod::FDCollisions>::iterator& col,
-                        FilteredFemtoFullParticles& parts)
-  {
-    fillCollision(col);
-    sphericityRegistry.fill(HIST("sphericity"), col.sphericity());
+              if (cfgProcessMultBins) {
+                sameEventMultContMM.init(&SameMultRegistryMM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+                mixedEventMultContMM.init(&MixedMultRegistryMM, ConfkstarBins, ConfMultKstarBins, ConfKtKstarBins, cfgProcessKtBins, cfgProcessKtMt3DCF);
+              }
+            }
 
-    auto thegroupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
-    auto thegroupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
+            pairCleaner.init(&qaRegistry);
+            if (ConfIsCPR.value) {
+              pairCloseRejection.init(&resultRegistry, &qaRegistry, ConfCPRdeltaPhiCutMin.value, ConfCPRdeltaPhiCutMax.value, ConfCPRdeltaEtaCutMin.value, ConfCPRdeltaEtaCutMax.value, ConfCPRChosenRadii.value, ConfCPRPlotPerRadii.value);
+            }
 
-    bool fillQA = true;
-
-    if (cfgProcessPM) {
-      doSameEvent<false>(thegroupPartsOne, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 1, fillQA);
-      fillQA = false;
-    }
-    if (cfgProcessPP)
-      doSameEvent<false>(thegroupPartsOne, thegroupPartsOne, parts, col.magField(), col.multNtr(), 2, fillQA);
-    if (cfgProcessMM)
-      doSameEvent<false>(thegroupPartsTwo, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 3, fillQA);
-  }
-  PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processSameEvent, "Enable processing same event", true);
-
-  /// process function for to call doSameEvent with Monte Carlo
-  /// \param col subscribe to the collision table (Monte Carlo Reconstructed reconstructed)
-  /// \param parts subscribe to joined table FemtoUniverseParticles and FemtoUniverseMCLables to access Monte Carlo truth
-  /// \param FemtoUniverseMCParticles subscribe to the Monte Carlo truth table
-  void processSameEventMC(o2::aod::FDCollision& col,
-                          soa::Join<FilteredFemtoFullParticles, aod::FDMCLabels>& parts,
-                          o2::aod::FDMCParticles&)
-  {
-    fillCollision(col);
-
-    auto thegroupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
-    auto thegroupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
-
-    bool fillQA = true;
-    if (cfgProcessPM) {
-      doSameEvent<false>(thegroupPartsOne, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 1, fillQA);
-      fillQA = false;
-    }
-    if (cfgProcessPP)
-      doSameEvent<true>(thegroupPartsOne, thegroupPartsOne, parts, col.magField(), col.multNtr(), 2, fillQA);
-    if (cfgProcessMM)
-      doSameEvent<true>(thegroupPartsTwo, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 3, fillQA);
-  }
-  PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processSameEventMC, "Enable processing same event for Monte Carlo", false);
-
-  /// This function processes the mixed event
-  /// \todo the trivial loops over the collisions and tracks should be factored out since they will be common to all combinations of T-T, T-V0, V0-V0, ...
-  /// \tparam PartitionType
-  /// \tparam PartType
-  /// \tparam isMC: enables Monte Carlo truth specific histograms
-  /// \param groupPartsOne partition for the first particle passed by the process function
-  /// \param groupPartsTwo partition for the second particle passed by the process function
-  /// \param parts femtoUniverseParticles table (in case of Monte Carlo joined with FemtoUniverseMCLabels)
-  /// \param magFieldTesla magnetic field of the collision
-  /// \param multCol multiplicity of the collision
-  /// \param pairType describes charge of correlation pair (plus-minus (1), plus-plus (2), minus-minus (3))
-  template <bool isMC, typename PartitionType, typename PartType>
-  void doMixedEvent(PartitionType groupPartsOne, PartitionType groupPartsTwo, PartType parts, float magFieldTesla, int multCol, int pairType)
-  {
-
-    for (auto& [p1, p2] : combinations(CombinationsFullIndexPolicy(groupPartsOne, groupPartsTwo))) {
-
-      if (!IsParticleNSigma((int8_t)2, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
-        continue;
-      }
-
-      if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
-        continue;
-      }
-
-      if (ConfIsCPR.value) {
-        if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::mixed)) {
-          continue;
-        }
-      }
-
-      switch (pairType) {
-        case 1: {
-          float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-          float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
-
-          mixedEventCont.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-          if (cfgProcessMultBins)
-            mixedEventMultCont.fill<float>(kstar, multCol, kT);
-
-          break;
-        }
-        case 2: {
-          if (IsPairIdentical == true) {
-            float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass1);
-            float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass1);
-
-            mixedEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-            if (cfgProcessMultBins)
-              mixedEventMultContPP.fill<float>(kstar, multCol, kT);
-          } else {
-            float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-            float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
-
-            mixedEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-            if (cfgProcessMultBins)
-              mixedEventMultContPP.fill<float>(kstar, multCol, kT);
+            vPIDPartOne = trackonefilter.ConfPIDPartOne.value;
+            vPIDPartTwo = tracktwofilter.ConfPIDPartTwo.value;
+            kNsigma = twotracksconfigs.ConfTrkPIDnSigmaMax.value;
           }
 
-          break;
-        }
-
-        case 3: {
-          if (IsPairIdentical == true) {
-            float kstar = FemtoUniverseMath::getkstar(p1, mass2, p2, mass2);
-            float kT = FemtoUniverseMath::getkT(p1, mass2, p2, mass2);
-
-            mixedEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-            if (cfgProcessMultBins)
-              mixedEventMultContMM.fill<float>(kstar, multCol, kT);
-          } else {
-            float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
-            float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
-
-            mixedEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
-            if (cfgProcessMultBins)
-              mixedEventMultContMM.fill<float>(kstar, multCol, kT);
+          template <typename CollisionType>
+          void fillCollision(CollisionType col)
+          {
+            MixQaRegistry.fill(HIST("MixingQA/hSECollisionBins"), colBinning.getBin({col.posZ(), col.multNtr()}));
+            eventHisto.fillQA(col);
           }
 
-          break;
+          /// This function processes the same event and takes care of all the histogramming
+          /// \todo the trivial loops over the tracks should be factored out since they will be common to all combinations of T-T, T-V0, V0-V0, ...
+          /// \tparam PartitionType
+          /// \tparam PartType
+          /// \tparam isMC: enables Monte Carlo truth specific histograms
+          /// \param groupPartsOne partition for the first particle passed by the process function
+          /// \param groupPartsTwo partition for the second particle passed by the process function
+          /// \param parts femtoUniverseParticles table (in case of Monte Carlo joined with FemtoUniverseMCLabels)
+          /// \param magFieldTesla magnetic field of the collision
+          /// \param multCol multiplicity of the collision
+          /// \param pairType describes charge of correlation pair (plus-minus (1), plus-plus (2), minus-minus (3))
+          /// \param fillQA enables filling of QA histograms
+          template <bool isMC, typename PartitionType, typename PartType>
+          void doSameEvent(PartitionType groupPartsOne, PartitionType groupPartsTwo, PartType parts, float magFieldTesla, int multCol, int pairType, bool fillQA)
+          {
+
+            /// Histogramming same event
+            if ((pairType == 1 || pairType == 2) && fillQA) {
+              for (auto& part : groupPartsOne) {
+                if (!IsParticleNSigma((int8_t)1, part.p(), trackCuts.getNsigmaTPC(part, o2::track::PID::Proton), trackCuts.getNsigmaTOF(part, o2::track::PID::Proton), trackCuts.getNsigmaTPC(part, o2::track::PID::Pion), trackCuts.getNsigmaTOF(part, o2::track::PID::Pion), trackCuts.getNsigmaTPC(part, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(part, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(part, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(part, o2::track::PID::Deuteron), part.tpcSignal())) {
+                  continue;
+                }
+                trackHistoPartOne.fillQA<isMC, true>(part);
+              }
+            }
+
+            if ((pairType == 1 || pairType == 3) && fillQA) {
+              for (auto& part : groupPartsTwo) {
+                if (!IsParticleNSigma((int8_t)2, part.p(), trackCuts.getNsigmaTPC(part, o2::track::PID::Proton), trackCuts.getNsigmaTOF(part, o2::track::PID::Proton), trackCuts.getNsigmaTPC(part, o2::track::PID::Pion), trackCuts.getNsigmaTOF(part, o2::track::PID::Pion), trackCuts.getNsigmaTPC(part, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(part, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(part, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(part, o2::track::PID::Deuteron), part.tpcSignal())) {
+                  continue;
+                }
+                trackHistoPartTwo.fillQA<isMC, true>(part);
+              }
+            }
+
+            if (pairType == 1) {
+
+              /// Now build the combinations for non-identical particle pairs
+              for (auto& [p1, p2] : combinations(CombinationsFullIndexPolicy(groupPartsOne, groupPartsTwo))) {
+
+                if (!IsParticleNSigma((int8_t)1, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
+                  continue;
+                }
+
+                if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
+                  continue;
+                }
+
+                if (ConfIsCPR.value) {
+                  if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::same)) {
+                    continue;
+                  }
+                }
+
+                // track cleaning
+                if (!pairCleaner.isCleanPair(p1, p2, parts)) {
+                  continue;
+                }
+
+                float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                sameEventCont.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                if (cfgProcessMultBins)
+                  sameEventMultCont.fill<float>(kstar, multCol, kT);
+              }
+            } else {
+              /// Now build the combinations for identical particles pairs
+              for (auto& [p1, p2] : combinations(CombinationsStrictlyUpperIndexPolicy(groupPartsOne, groupPartsOne))) {
+
+                if (!IsParticleNSigma((int8_t)2, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
+                  continue;
+                }
+
+                if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
+                  continue;
+                }
+
+                if (ConfIsCPR.value) {
+                  if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::same)) {
+                    continue;
+                  }
+                }
+
+                // track cleaning
+                if (!pairCleaner.isCleanPair(p1, p2, parts)) {
+                  continue;
+                }
+
+                switch (pairType) {
+                  case 2: {
+                    if (IsPairIdentical == true) {
+                      float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass1);
+                      float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass1);
+
+                      sameEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                      if (cfgProcessMultBins)
+                        sameEventMultContPP.fill<float>(kstar, multCol, kT);
+                    } else {
+                      float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                      float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                      sameEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                      if (cfgProcessMultBins)
+                        sameEventMultContPP.fill<float>(kstar, multCol, kT);
+                    }
+
+                    break;
+                  }
+
+                  case 3: {
+                    if (IsPairIdentical == true) {
+                      float kstar = FemtoUniverseMath::getkstar(p1, mass2, p2, mass2);
+                      float kT = FemtoUniverseMath::getkT(p1, mass2, p2, mass2);
+
+                      sameEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                      if (cfgProcessMultBins)
+                        sameEventMultContMM.fill<float>(kstar, multCol, kT);
+                    } else {
+                      float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                      float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                      sameEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                      if (cfgProcessMultBins)
+                        sameEventMultContMM.fill<float>(kstar, multCol, kT);
+                    }
+
+                    break;
+                  }
+                  default:
+                    break;
+                }
+              }
+            }
+          }
+
+          /// process function for to call doSameEvent with Data
+          /// \param col subscribe to the collision table (Data)
+          /// \param parts subscribe to the femtoUniverseParticleTable
+          void processSameEvent(soa::Filtered<o2::aod::FDCollisions>::iterator & col,
+                                FilteredFemtoFullParticles & parts)
+          {
+            fillCollision(col);
+            sphericityRegistry.fill(HIST("sphericity"), col.sphericity());
+
+            auto thegroupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
+            auto thegroupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
+
+            bool fillQA = true;
+
+            if (cfgProcessPM) {
+              doSameEvent<false>(thegroupPartsOne, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 1, fillQA);
+              fillQA = false;
+            }
+            if (cfgProcessPP)
+              doSameEvent<false>(thegroupPartsOne, thegroupPartsOne, parts, col.magField(), col.multNtr(), 2, fillQA);
+            if (cfgProcessMM)
+              doSameEvent<false>(thegroupPartsTwo, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 3, fillQA);
+          }
+          PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processSameEvent, "Enable processing same event", true);
+
+          /// process function for to call doSameEvent with Monte Carlo
+          /// \param col subscribe to the collision table (Monte Carlo Reconstructed reconstructed)
+          /// \param parts subscribe to joined table FemtoUniverseParticles and FemtoUniverseMCLables to access Monte Carlo truth
+          /// \param FemtoUniverseMCParticles subscribe to the Monte Carlo truth table
+          void processSameEventMC(o2::aod::FDCollision & col,
+                                  soa::Join<FilteredFemtoFullParticles, aod::FDMCLabels> & parts,
+                                  o2::aod::FDMCParticles&)
+          {
+            fillCollision(col);
+
+            auto thegroupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
+            auto thegroupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, col.globalIndex(), cache);
+
+            bool fillQA = true;
+            if (cfgProcessPM) {
+              doSameEvent<false>(thegroupPartsOne, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 1, fillQA);
+              fillQA = false;
+            }
+            if (cfgProcessPP)
+              doSameEvent<true>(thegroupPartsOne, thegroupPartsOne, parts, col.magField(), col.multNtr(), 2, fillQA);
+            if (cfgProcessMM)
+              doSameEvent<true>(thegroupPartsTwo, thegroupPartsTwo, parts, col.magField(), col.multNtr(), 3, fillQA);
+          }
+          PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processSameEventMC, "Enable processing same event for Monte Carlo", false);
+
+          /// This function processes the mixed event
+          /// \todo the trivial loops over the collisions and tracks should be factored out since they will be common to all combinations of T-T, T-V0, V0-V0, ...
+          /// \tparam PartitionType
+          /// \tparam PartType
+          /// \tparam isMC: enables Monte Carlo truth specific histograms
+          /// \param groupPartsOne partition for the first particle passed by the process function
+          /// \param groupPartsTwo partition for the second particle passed by the process function
+          /// \param parts femtoUniverseParticles table (in case of Monte Carlo joined with FemtoUniverseMCLabels)
+          /// \param magFieldTesla magnetic field of the collision
+          /// \param multCol multiplicity of the collision
+          /// \param pairType describes charge of correlation pair (plus-minus (1), plus-plus (2), minus-minus (3))
+          template <bool isMC, typename PartitionType, typename PartType>
+          void doMixedEvent(PartitionType groupPartsOne, PartitionType groupPartsTwo, PartType parts, float magFieldTesla, int multCol, int pairType)
+          {
+
+            for (auto& [p1, p2] : combinations(CombinationsFullIndexPolicy(groupPartsOne, groupPartsTwo))) {
+
+              if (!IsParticleNSigma((int8_t)2, p1.p(), trackCuts.getNsigmaTPC(p1, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p1, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p1, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p1, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p1, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p1, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p1, o2::track::PID::Deuteron), p1.tpcSignal())) {
+                continue;
+              }
+
+              if (!IsParticleNSigma((int8_t)2, p2.p(), trackCuts.getNsigmaTPC(p2, o2::track::PID::Proton), trackCuts.getNsigmaTOF(p2, o2::track::PID::Proton), trackCuts.getNsigmaTPC(p2, o2::track::PID::Pion), trackCuts.getNsigmaTOF(p2, o2::track::PID::Pion), trackCuts.getNsigmaTPC(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTOF(p2, o2::track::PID::Kaon), trackCuts.getNsigmaTPC(p2, o2::track::PID::Deuteron), trackCuts.getNsigmaTOF(p2, o2::track::PID::Deuteron), p2.tpcSignal())) {
+                continue;
+              }
+
+              if (ConfIsCPR.value) {
+                if (pairCloseRejection.isClosePair(p1, p2, parts, magFieldTesla, femtoUniverseContainer::EventType::mixed)) {
+                  continue;
+                }
+              }
+
+              switch (pairType) {
+                case 1: {
+                  float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                  float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                  mixedEventCont.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                  if (cfgProcessMultBins)
+                    mixedEventMultCont.fill<float>(kstar, multCol, kT);
+
+                  break;
+                }
+                case 2: {
+                  if (IsPairIdentical == true) {
+                    float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass1);
+                    float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass1);
+
+                    mixedEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                    if (cfgProcessMultBins)
+                      mixedEventMultContPP.fill<float>(kstar, multCol, kT);
+                  } else {
+                    float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                    float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                    mixedEventContPP.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                    if (cfgProcessMultBins)
+                      mixedEventMultContPP.fill<float>(kstar, multCol, kT);
+                  }
+
+                  break;
+                }
+
+                case 3: {
+                  if (IsPairIdentical == true) {
+                    float kstar = FemtoUniverseMath::getkstar(p1, mass2, p2, mass2);
+                    float kT = FemtoUniverseMath::getkT(p1, mass2, p2, mass2);
+
+                    mixedEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                    if (cfgProcessMultBins)
+                      mixedEventMultContMM.fill<float>(kstar, multCol, kT);
+                  } else {
+                    float kstar = FemtoUniverseMath::getkstar(p1, mass1, p2, mass2);
+                    float kT = FemtoUniverseMath::getkT(p1, mass1, p2, mass2);
+
+                    mixedEventContMM.setPair<isMC>(p1, p2, multCol, twotracksconfigs.ConfUse3D);
+                    if (cfgProcessMultBins)
+                      mixedEventMultContMM.fill<float>(kstar, multCol, kT);
+                  }
+
+                  break;
+                }
+                default:
+                  break;
+              }
+            }
+          }
+
+          /// process function for to call doMixedEvent with Data
+          /// \param cols subscribe to the collisions table (Data)
+          /// \param parts subscribe to the femtoUniverseParticleTable
+          void processMixedEvent(soa::Filtered<o2::aod::FDCollisions> & cols,
+                                 FilteredFemtoFullParticles & parts)
+          {
+            for (auto& [collision1, collision2] : soa::selfCombinations(colBinning, 5, -1, cols, cols)) {
+
+              const int multiplicityCol = collision1.multNtr();
+              MixQaRegistry.fill(HIST("MixingQA/hMECollisionBins"), colBinning.getBin({collision1.posZ(), multiplicityCol}));
+
+              const auto& magFieldTesla1 = collision1.magField();
+              const auto& magFieldTesla2 = collision2.magField();
+
+              if (magFieldTesla1 != magFieldTesla2) {
+                continue;
+              }
+
+              if (cfgProcessPM) {
+                auto groupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 1);
+              }
+              if (cfgProcessPP) {
+                auto groupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 2);
+              }
+              if (cfgProcessMM) {
+                auto groupPartsOne = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 3);
+              }
+            }
+          }
+          PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processMixedEvent, "Enable processing mixed events", true);
+
+          /// brief process function for to call doMixedEvent with Monte Carlo
+          /// \param cols subscribe to the collisions table (Monte Carlo Reconstructed reconstructed)
+          /// \param parts subscribe to joined table FemtoUniverseParticles and FemtoUniverseMCLables to access Monte Carlo truth
+          /// \param FemtoUniverseMCParticles subscribe to the Monte Carlo truth table
+          void processMixedEventMC(o2::aod::FDCollisions & cols,
+                                   soa::Join<FilteredFemtoFullParticles, aod::FDMCLabels> & parts,
+                                   o2::aod::FDMCParticles&)
+          {
+            for (auto& [collision1, collision2] : soa::selfCombinations(colBinning, 5, -1, cols, cols)) {
+
+              const int multiplicityCol = collision1.multNtr();
+              MixQaRegistry.fill(HIST("MixingQA/hMECollisionBins"), colBinning.getBin({collision1.posZ(), multiplicityCol}));
+
+              const auto& magFieldTesla1 = collision1.magField();
+              const auto& magFieldTesla2 = collision2.magField();
+
+              if (magFieldTesla1 != magFieldTesla2) {
+                continue;
+              }
+              /// \todo before mixing we should check whether both collisions contain a pair of particles!
+              // if (partsOne.size() == 0 || nPart2Evt1 == 0 || nPart1Evt2 == 0 || partsTwo.size() == 0 ) continue;
+
+              if (cfgProcessPM) {
+                auto groupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 1);
+              }
+              if (cfgProcessPP) {
+                auto groupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 2);
+              }
+              if (cfgProcessMM) {
+                auto groupPartsOne = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
+                auto groupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
+                doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 3);
+              }
+            }
+          }
+          PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processMixedEventMC, "Enable processing mixed events MC", false);
+        };
+
+        WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
+        {
+          WorkflowSpec workflow{
+            adaptAnalysisTask<femtoUniversePairTaskTrackTrackMultKtExtended>(cfgc),
+          };
+          return workflow;
         }
-        default:
-          break;
-      }
-    }
-  }
-
-  /// process function for to call doMixedEvent with Data
-  /// \param cols subscribe to the collisions table (Data)
-  /// \param parts subscribe to the femtoUniverseParticleTable
-  void processMixedEvent(soa::Filtered<o2::aod::FDCollisions>& cols,
-                         FilteredFemtoFullParticles& parts)
-  {
-    for (auto& [collision1, collision2] : soa::selfCombinations(colBinning, 5, -1, cols, cols)) {
-
-      const int multiplicityCol = collision1.multNtr();
-      MixQaRegistry.fill(HIST("MixingQA/hMECollisionBins"), colBinning.getBin({collision1.posZ(), multiplicityCol}));
-
-      const auto& magFieldTesla1 = collision1.magField();
-      const auto& magFieldTesla2 = collision2.magField();
-
-      if (magFieldTesla1 != magFieldTesla2) {
-        continue;
-      }
-
-      if (cfgProcessPM) {
-        auto groupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 1);
-      }
-      if (cfgProcessPP) {
-        auto groupPartsOne = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsOne->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 2);
-      }
-      if (cfgProcessMM) {
-        auto groupPartsOne = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsTwo->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<false>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 3);
-      }
-    }
-  }
-  PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processMixedEvent, "Enable processing mixed events", true);
-
-  /// brief process function for to call doMixedEvent with Monte Carlo
-  /// \param cols subscribe to the collisions table (Monte Carlo Reconstructed reconstructed)
-  /// \param parts subscribe to joined table FemtoUniverseParticles and FemtoUniverseMCLables to access Monte Carlo truth
-  /// \param FemtoUniverseMCParticles subscribe to the Monte Carlo truth table
-  void processMixedEventMC(o2::aod::FDCollisions& cols,
-                           soa::Join<FilteredFemtoFullParticles, aod::FDMCLabels>& parts,
-                           o2::aod::FDMCParticles&)
-  {
-    for (auto& [collision1, collision2] : soa::selfCombinations(colBinning, 5, -1, cols, cols)) {
-
-      const int multiplicityCol = collision1.multNtr();
-      MixQaRegistry.fill(HIST("MixingQA/hMECollisionBins"), colBinning.getBin({collision1.posZ(), multiplicityCol}));
-
-      const auto& magFieldTesla1 = collision1.magField();
-      const auto& magFieldTesla2 = collision2.magField();
-
-      if (magFieldTesla1 != magFieldTesla2) {
-        continue;
-      }
-      /// \todo before mixing we should check whether both collisions contain a pair of particles!
-      // if (partsOne.size() == 0 || nPart2Evt1 == 0 || nPart1Evt2 == 0 || partsTwo.size() == 0 ) continue;
-
-      if (cfgProcessPM) {
-        auto groupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 1);
-      }
-      if (cfgProcessPP) {
-        auto groupPartsOne = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsOneMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 2);
-      }
-      if (cfgProcessMM) {
-        auto groupPartsOne = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision1.globalIndex(), cache);
-        auto groupPartsTwo = partsTwoMC->sliceByCached(aod::femtouniverseparticle::fdCollisionId, collision2.globalIndex(), cache);
-        doMixedEvent<true>(groupPartsOne, groupPartsTwo, parts, magFieldTesla1, multiplicityCol, 3);
-      }
-    }
-  }
-  PROCESS_SWITCH(femtoUniversePairTaskTrackTrackMultKtExtended, processMixedEventMC, "Enable processing mixed events MC", false);
-};
-
-WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
-{
-  WorkflowSpec workflow{
-    adaptAnalysisTask<femtoUniversePairTaskTrackTrackMultKtExtended>(cfgc),
-  };
-  return workflow;
-}
