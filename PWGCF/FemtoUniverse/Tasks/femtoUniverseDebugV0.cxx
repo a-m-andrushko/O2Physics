@@ -1,4 +1,4 @@
-// Copyright 2019-2022 CERN and copyright holders of ALICE O2.
+// Copyright 2019-2025 CERN and copyright holders of ALICE O2.
 // See https://alice-o2.web.cern.ch/copyright for details of the copyright holders.
 // All rights not expressly granted are reserved.
 //
@@ -18,6 +18,7 @@
 #include <fairlogger/Logger.h>
 #include <cstdint>
 #include <vector>
+#include <TDatabasePDG.h>
 #include "Framework/AnalysisTask.h"
 #include "Framework/runDataProcessing.h"
 #include "Framework/HistogramRegistry.h"
@@ -73,13 +74,16 @@ struct FemtoUniverseDebugV0 {
 
   Configurable<bool> confIsMC{"confIsMC", false, "Enable additional histograms in the case of a Monte Carlo run"};
 
+
   /// Partitioning
   using FemtoFullParticles = soa::Join<aod::FDParticles, aod::FDExtParticles>;
+
   Partition<FemtoFullParticles> partsOne = (aod::femtouniverseparticle::partType == uint8_t(aod::femtouniverseparticle::ParticleType::kV0)) && ((aod::femtouniverseparticle::cut & V0configs.confCutV0) == V0configs.confCutV0);
 
   Partition<soa::Join<FemtoFullParticles, aod::FDMCLabels>> partsOneMC = (aod::femtouniverseparticle::partType == uint8_t(aod::femtouniverseparticle::ParticleType::kV0)) && ((aod::femtouniverseparticle::cut & V0configs.confCutV0) == V0configs.confCutV0);
 
   Preslice<FemtoFullParticles> perCol = aod::femtouniverseparticle::fdCollisionId;
+  
 
   /// Histogramming
   FemtoUniverseEventHisto eventHisto;
@@ -91,6 +95,7 @@ struct FemtoUniverseDebugV0 {
   HistogramRegistry eventRegistry{"Event", {}, OutputObjHandlingPolicy::AnalysisObject};
   HistogramRegistry V0Registry{"FullV0QA", {}, OutputObjHandlingPolicy::AnalysisObject}; // o2-linter: disable=name/function-variable
   HistogramRegistry thetaRegistry{"ThetaQA", {}, OutputObjHandlingPolicy::AnalysisObject};
+  
 
   void init(InitContext&)
   {
@@ -107,6 +112,7 @@ struct FemtoUniverseDebugV0 {
     thetaRegistry.add("Theta/NegativeChild/hThetaEta", " ; #eta; cos(#theta)", kTH2F, {{100, -1, 1}, {110, -1.1, 1.1}});
     thetaRegistry.add("Theta/NegativeChild/hThetaPhi", " ; #phi; cos(#theta)", kTH2F, {{100, -1, 7}, {110, -1.1, 1.1}});
   }
+  
 
   /// Produce QA plots for V0 and its children on real data
   void processData(o2::aod::FdCollision const& col, FemtoFullParticles const& parts)
