@@ -24,8 +24,6 @@
 #include "PWGCF/FemtoUniverse/DataModel/FemtoDerived.h"
 
 #include "Common/Core/RecoDecay.h"
-#include "PWGCF/FemtoUniverse/DataModel/FemtoDerived.h"
-#include "PWGCF/FemtoUniverse/Core/FemtoUniverseMath.h"
 
 #include "Framework/HistogramRegistry.h"
 
